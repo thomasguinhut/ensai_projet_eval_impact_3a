@@ -1,6 +1,16 @@
+#' Configure et charge l'environnement R avec renv
+#' 
+#' Cette fonction initialise ou restaure un environnement renv, installe les packages
+#' manquants, met à jour le snapshot automatiquement, et charge tous les packages.
+#' 
+#' @param packages_requis Vecteur de noms de packages à installer et charger
+#' 
+#' @examples
+#' chargement_packages(c("dplyr", "ggplot2", "data.table"))
+
 chargement_packages <- function(packages_requis) {
   
-  # Configuration de base
+  # Configuration du chemin de bibliothèque et désactivation des prompts interactifs
   .libPaths(c("/home/onyxia/work/userLibrary", .libPaths()))
   options(
     renv.config.sandbox.enabled = FALSE,
@@ -14,46 +24,69 @@ chargement_packages <- function(packages_requis) {
     install.packages("renv", quiet = TRUE)
   }
   
-  # Consentement pour éviter les questions interactives
-  renv::consent(provided = TRUE)
-  
-  # --- Branche 1 : Initialisation si renv.lock n'existe pas ---
-  if (!file.exists("renv.lock")) {
+  # Branche 1: Si renv.lock existe, on restaure et on complète
+  if (file.exists("renv.lock")) {
+    cat("Restauration de l'environnement renv...\n")
+    
+    sink("/dev/null")
+    renv::restore(prompt = FALSE)
+    sink()
+    
+    # Détection des packages manquants dans renv.lock
+    cat("Vérification des nouveaux packages...\n")
+    lock_content <- jsonlite::fromJSON("renv.lock")
+    packages_in_lock <- names(lock_content$Packages)
+    missing_from_lock <- setdiff(packages_requis, packages_in_lock)
+    
+    # Installation et enregistrement des packages manquants
+    if (length(missing_from_lock) > 0) {
+      cat("⚠️ Nouveaux packages détectés :", paste(missing_from_lock, collapse = ", "), "\n")
+      cat("Installation automatique...\n")
+      
+      sink("/dev/null")
+      renv::install(missing_from_lock, prompt = FALSE)
+      sink()
+      
+      # Enregistrement explicite dans renv.lock
+      cat("Enregistrement dans renv.lock...\n")
+      for (pkg in missing_from_lock) {
+        renv::record(pkg)
+      }
+      
+      cat("✅ Packages enregistrés dans renv.lock\n")
+    }
+    
+    # Branche 2: Si renv.lock n'existe pas, on initialise tout
+  } else {
     cat("Initialisation du projet avec renv...\n")
-    renv::init(bare = TRUE, restart = FALSE, settings = list(snapshot.type = "implicit"))
+    renv::init(bare = TRUE, restart = FALSE, 
+               settings = list(snapshot.type = "implicit"))
     
     cat("Installation des packages requis...\n")
     sink("/dev/null")
     renv::install(packages_requis, prompt = FALSE)
     sink()
     
-    cat("Création du lockfile...\n")
-    renv::snapshot(prompt = FALSE)
-  }
-  # --- Branche 2 : Restauration si renv.lock existe ---
-  else {
-    cat("Restauration de l'environnement renv...\n")
-    sink("/dev/null")
-    renv::restore(prompt = FALSE)
-    sink()
+    # Enregistrement de tous les packages dans renv.lock
+    cat("Enregistrement dans renv.lock...\n")
+    for (pkg in packages_requis) {
+      renv::record(pkg)
+    }
   }
   
-  # --- Vérification des packages manquants (APRÈS restauration) ---
-  installed <- rownames(installed.packages(lib.loc = renv::paths$library()))
-  missing <- setdiff(packages_requis, installed)
+  # Vérification finale: tous les packages doivent être présents
+  cat("Vérification de la présence de tous les packages nécessaires au projet...\n")
+  installed_final <- rownames(installed.packages(lib.loc = renv::paths$library()))
+  missing_final <- setdiff(packages_requis, installed_final)
   
-  if (length(missing) > 0) {
-    cat("⚠️ Packages manquants détectés :", paste(missing, collapse = ", "), "\n")
-    cat("Installation automatique...\n")
-    sink("/dev/null")
-    renv::install(missing, prompt = FALSE)
-    sink()
-    
-    cat("Mise à jour du lockfile...\n")
-    renv::snapshot(prompt = FALSE)
+  if (length(missing_final) > 0) {
+    stop(
+      "❌ Erreur : Packages manquants après installation : ",
+      paste(missing_final, collapse = ", ")
+    )
   }
   
-  # --- Chargement des packages ---
+  # Chargement des packages avec affichage des versions
   cat("Chargement des packages...\n")
   invisible(lapply(packages_requis, function(pkg) {
     suppressPackageStartupMessages(library(pkg, character.only = TRUE))
@@ -61,4 +94,5 @@ chargement_packages <- function(packages_requis) {
   }))
   
   cat("✅ Environnement de travail prêt\n")
+  
 }

@@ -49,3 +49,5 @@ catnat_3 %>%
   summarise(across(everything(), ~ sum(is.na(.x))))
 
 catnat <- catnat_2
+
+rm(catnat_1, catnat_2, catnat_3, est_format_date)
