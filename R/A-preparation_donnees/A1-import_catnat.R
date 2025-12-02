@@ -1,12 +1,26 @@
+################################################################################
+################################# Importation ##################################
+################################################################################
+
+
+objets_initiaux <- ls()
+
 catnat_1 <-
   aws.s3::s3read_using(
     FUN = read.csv2,
-    object = "projet_eval_impact/catnat_gaspar.csv",
+    object = "projet_eval_impact/sources/catnat_gaspar.csv",
     bucket = "thomasguinhut",
     opts = list("region" = "")
   )
 
 glimpse(catnat_1)
+
+
+
+################################################################################
+################################## Nettoyage ###################################
+################################################################################
+
 
 catnat_2 <- catnat_1 %>%
   dplyr::select(-c("dat_pub_arrete", "dat_pub_jo", "dat_maj"))
@@ -48,6 +62,22 @@ summary(catnat_3)
 catnat_3 %>%
   summarise(across(everything(), ~ sum(is.na(.x))))
 
-catnat <- catnat_2
+catnat <- catnat_3
 
-rm(catnat_1, catnat_2, catnat_3, est_format_date)
+
+
+################################################################################
+################################ Export ########################################
+################################################################################
+
+
+aws.s3::s3write_using(
+  catnat,
+  FUN = function(data, file) saveRDS(data, file = file),
+  object = "projet_eval_impact/donnees_nettoyees/catnat.rds",
+  bucket = "thomasguinhut",
+  opts = list(region = "")
+)
+
+nouveaux_objets <- setdiff(ls(), objets_initiaux)
+rm(nouveaux_objets, list = nouveaux_objets)
