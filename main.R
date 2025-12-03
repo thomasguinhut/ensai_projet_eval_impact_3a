@@ -6,7 +6,7 @@
 source("R/chargement_packages.R")
 
 # Définition des packages
-packages_requis <- c("dplyr", "lubridate", "stringr", "tidyr")
+packages_requis <- c("aws.s3", "dplyr", "lubridate", "stringr", "tidyr")
 
 chargement_packages(packages_requis)
 

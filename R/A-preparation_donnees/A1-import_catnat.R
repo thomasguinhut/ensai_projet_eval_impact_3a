@@ -46,12 +46,16 @@ catnat_2 %>%
   pull(dat_fin)
 
 # Pas d'autres formats, on convertie en format Date en prenant les premiers
-# XXXX-XX-XX
+# XXXX-XX-XX + on ne garde que la Bretagne + on trie de façon chronologique +
+# on crée une variable duree
 catnat_3 <- catnat_2 %>% 
   mutate(
     dat_deb = as.Date(substr(dat_deb, 1, 10)), 
     dat_fin = as.Date(substr(dat_fin, 1, 10))
-  )
+  ) %>% 
+  filter(substr(cod_commune, 1, 2) %in% c("29", "22", "56", "35")) %>% 
+  arrange(dat_deb) %>% 
+  mutate(duree_jours = as.numeric(dat_fin - dat_deb) + 1)
 
 # On vérifie qu'il n'y a pas de modalité étrange
 unique(catnat_3$lib_risque_jo)
