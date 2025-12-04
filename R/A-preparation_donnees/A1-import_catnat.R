@@ -8,7 +8,7 @@ objets_initiaux <- ls()
 catnat_1 <-
   aws.s3::s3read_using(
     FUN = read.csv2,
-    object = "projet_eval_impact/diffusion/sources/catnat_gaspar.csv",
+    object = "projet_eval_impact/sources/diffusion/catnat_gaspar.csv",
     bucket = "thomasguinhut",
     opts = list("region" = "")
   )
@@ -47,7 +47,7 @@ catnat_2 %>%
 
 # Pas d'autres formats, on convertie en format Date en prenant les premiers
 # XXXX-XX-XX + on ne garde que la Bretagne + on trie de façon chronologique +
-# on crée une variable duree
+# on crée une variable duree + renomage
 catnat_3 <- catnat_2 %>% 
   mutate(
     dat_deb = as.Date(substr(dat_deb, 1, 10)), 
@@ -55,7 +55,8 @@ catnat_3 <- catnat_2 %>%
   ) %>% 
   filter(substr(cod_commune, 1, 2) %in% c("29", "22", "56", "35")) %>% 
   arrange(dat_deb) %>% 
-  mutate(duree_jours = as.numeric(dat_fin - dat_deb) + 1)
+  mutate(duree_jours = as.integer(dat_fin - dat_deb) + 1) %>% 
+  rename(id = cod_nat_catnat)
 
 # On vérifie qu'il n'y a pas de modalité étrange
 unique(catnat_3$lib_risque_jo)
@@ -78,7 +79,7 @@ catnat <- catnat_3
 aws.s3::s3write_using(
   catnat,
   FUN = function(data, file) saveRDS(data, file = file),
-  object = "projet_eval_impact/diffusion/donnees_nettoyees/catnat.rds",
+  object = "projet_eval_impact/donnees_nettoyees/diffusion/catnat.rds",
   bucket = "thomasguinhut",
   opts = list(region = "")
 )

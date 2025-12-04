@@ -8,7 +8,7 @@ objets_initiaux <- ls()
 dvf_1 <-
   aws.s3::s3read_using(
     FUN = read.csv2,
-    object = "projet_eval_impact/diffusion/sources/dvf_plus.csv",
+    object = "projet_eval_impact/sources/diffusion/dvf_plus.csv",
     bucket = "thomasguinhut",
     sep = "|",
     opts = list("region" = "")
@@ -24,7 +24,11 @@ glimpse(dvf_1)
 
 
 dvf_2 <- dvf_1 %>% 
-  dplyr::select(datemut, coddep, libnatmut, valeurfonc, nblot, nbcomm,
+  dplyr::select(idmutation,
+                idmutinvar,
+                idopendata,
+                idnatmut,
+                datemut, coddep, libnatmut, valeurfonc, nblot, nbcomm,
                 l_codinsee, sterr, nbvolmut, nblocmut, nblocmai:smai5pp)
 
 unique(dvf_2$nblot)
@@ -37,7 +41,8 @@ dvf_3 <- dvf_2 %>%
          valeurfonc = as.numeric(valeurfonc),
          nblot = as.integer(nblot),
          across(starts_with("s"), as.numeric),
-         sterr = as.numeric(sterr))
+         sterr = as.numeric(sterr)) %>% 
+  filter(!str_detect(l_codinsee, ","))
 
 glimpse(dvf_3)
 
@@ -63,7 +68,7 @@ dvf <- dvf_4
 aws.s3::s3write_using(
   dvf,
   FUN = function(data, file) saveRDS(data, file = file),
-  object = "projet_eval_impact/diffusion/donnees_nettoyees/dvf.rds",
+  object = "projet_eval_impact/donnees_nettoyees/diffusion/dvf.rds",
   bucket = "thomasguinhut",
   opts = list(region = "")
 )
