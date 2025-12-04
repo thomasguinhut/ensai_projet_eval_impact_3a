@@ -4,7 +4,7 @@
 catnat <-
   aws.s3::s3read_using(
     FUN = readRDS,
-    object = "projet_eval_impact/donnees_nettoyees/diffusion/catnat.rds",
+    object = "diffusion/projet_eval_impact/donnees_nettoyees/catnat.rds",
     bucket = "thomasguinhut",
     opts = list("region" = "")
   )
@@ -12,7 +12,7 @@ catnat <-
 dvf <-
   aws.s3::s3read_using(
     FUN = readRDS,
-    object = "projet_eval_impact/donnees_nettoyees/diffusion/dvf.rds",
+    object = "diffusion/projet_eval_impact/donnees_nettoyees/diffusion/dvf.rds",
     bucket = "thomasguinhut",
     opts = list("region" = "")
   )

@@ -8,7 +8,7 @@ objets_initiaux <- ls()
 catnat_1 <-
   aws.s3::s3read_using(
     FUN = read.csv2,
-    object = "projet_eval_impact/sources/diffusion/catnat_gaspar.csv",
+    object = "diffusion/projet_eval_impact/sources/catnat_gaspar.csv",
     bucket = "thomasguinhut",
     opts = list("region" = "")
   )
@@ -79,7 +79,7 @@ catnat <- catnat_3
 aws.s3::s3write_using(
   catnat,
   FUN = function(data, file) saveRDS(data, file = file),
-  object = "projet_eval_impact/donnees_nettoyees/diffusion/catnat.rds",
+  object = "diffusion/projet_eval_impact/donnees_nettoyees/catnat.rds",
   bucket = "thomasguinhut",
   opts = list(region = "")
 )

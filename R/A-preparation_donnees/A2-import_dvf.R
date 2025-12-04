@@ -8,7 +8,7 @@ objets_initiaux <- ls()
 dvf_1 <-
   aws.s3::s3read_using(
     FUN = read.csv2,
-    object = "projet_eval_impact/sources/diffusion/dvf_plus.csv",
+    object = "diffusion/projet_eval_impact/sources/dvf_plus.csv",
     bucket = "thomasguinhut",
     sep = "|",
     opts = list("region" = "")
@@ -68,7 +68,7 @@ dvf <- dvf_4
 aws.s3::s3write_using(
   dvf,
   FUN = function(data, file) saveRDS(data, file = file),
-  object = "projet_eval_impact/donnees_nettoyees/diffusion/dvf.rds",
+  object = "diffusion/projet_eval_impact/donnees_nettoyees/diffusion/dvf.rds",
   bucket = "thomasguinhut",
   opts = list(region = "")
 )
