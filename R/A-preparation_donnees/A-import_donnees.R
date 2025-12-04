@@ -1,5 +1,5 @@
-source("R/A-preparation_donnees/A1-import_catnat.R")
-source("R/A-preparation_donnees/A2-import_dvf.R")
+# source("R/A-preparation_donnees/A1-import_catnat.R")
+# source("R/A-preparation_donnees/A2-import_dvf.R")
 
 catnat <-
   aws.s3::s3read_using(

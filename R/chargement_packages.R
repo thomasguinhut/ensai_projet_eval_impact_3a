@@ -33,15 +33,16 @@ chargement_packages <- function(packages_requis) {
     # Initialisation de renv dans le projet
     renv::init(bare = TRUE, restart = FALSE, settings = list(snapshot.type = "implicit"))
     
+    # Installation des packages requis
     cat("Installation des packages requis...\n")
     quiet_sink()
     renv::install(packages_requis, prompt = FALSE)
     sink()
     
-    cat("Enregistrement dans renv.lock...\n")
-    for (pkg in packages_requis) {
-      renv::record(pkg)
-    }
+    # Création du snapshot (lockfile) après installation
+    cat("Création du renv.lock...\n")
+    renv::snapshot(prompt = FALSE, type = "implicit")
+    
   } else {
     # Si renv.lock existe déjà, on restaure l'environnement
     cat("Restauration de l'environnement renv...\n")
