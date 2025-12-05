@@ -1,6 +1,6 @@
 chargement_packages <- function(packages_requis) {
   
-  # Configuration du chemin de bibliothèque (adapté à l'environnement)
+  # Configuration du chemin de bibliothèque
   if (dir.exists("/home/onyxia/work/userLibrary")) {
     .libPaths(c("/home/onyxia/work/userLibrary", .libPaths()))
   }
@@ -29,8 +29,6 @@ chargement_packages <- function(packages_requis) {
   # Vérification si renv.lock ou renv/ sont absents et initialisation
   if (!file.exists("renv.lock") || !dir.exists("renv")) {
     cat("Réinitialisation du projet avec renv...\n")
-    
-    # Initialisation de renv dans le projet
     renv::init(bare = TRUE, restart = FALSE, settings = list(snapshot.type = "implicit"))
     
     # Installation des packages requis
@@ -51,7 +49,18 @@ chargement_packages <- function(packages_requis) {
     sink()
   }
   
-  # Vérification de la présence des packages
+  # Installation des packages manquants si nécessaire
+  installed_final <- rownames(installed.packages(lib.loc = renv::paths$library()))
+  missing_final <- setdiff(packages_requis, installed_final)
+  
+  if (length(missing_final) > 0) {
+    cat("Installation des packages manquants :", paste(missing_final, collapse = ", "), "\n")
+    quiet_sink()
+    renv::install(missing_final, prompt = FALSE)
+    sink()
+  }
+  
+  # Vérification finale de la présence des packages
   cat("Vérification de la présence de tous les packages...\n")
   installed_final <- rownames(installed.packages(lib.loc = renv::paths$library()))
   missing_final <- setdiff(packages_requis, installed_final)
