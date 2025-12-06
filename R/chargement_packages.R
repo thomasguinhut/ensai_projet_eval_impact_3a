@@ -58,6 +58,10 @@ chargement_packages <- function(packages_requis) {
     quiet_sink()
     renv::install(missing_final, prompt = FALSE)
     sink()
+    
+    # Mise à jour du lockfile après installation des packages manquants
+    cat("Mise à jour de renv.lock...\n")
+    renv::snapshot(prompt = FALSE, type = "implicit")
   }
   
   # Vérification finale de la présence des packages
