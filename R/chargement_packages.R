@@ -31,7 +31,7 @@ chargement_packages <- function(packages_requis, packages_onyxia = NULL) {
     cat("Réinitialisation du projet avec renv...\n")
     renv::init(bare = TRUE, restart = FALSE, settings = list(snapshot.type = "implicit"))
     
-    # Installation des packages requis, y compris les packages Onyxia
+    # Installation des packages requis
     cat("Installation des packages requis...\n")
     quiet_sink()
     renv::install(packages_requis, prompt = FALSE)
