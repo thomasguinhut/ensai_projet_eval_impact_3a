@@ -1,3 +1,10 @@
+################################################################################
+################################## Nettoyage ###################################
+################################################################################
+
+
+objets_initiaux <- ls()
+
 catnat %>% 
   filter(substr(dat_deb, 1, 4) > 2020) %>% 
   group_by(id) %>% 
@@ -5,13 +12,13 @@ catnat %>%
   arrange(desc(n))
 
 # On garde la catnat la plus importante de ces cinq dernières années : Herminia,
-# qui a touché le sud-est de la Bretagne entre le 23 janvier et 5 février.
+# qui a touché le sud-est de la Bretagne entre le 23 janvier et 5 février 2025.
 
 herminia <- catnat %>%
   filter(id == "INTE2503788A") %>% 
   pull(cod_commune)
 
-bdd <- cog %>%
+communes <- cog %>%
   filter(is.na(DATE_FIN)) %>% # on retrouve bien le même nombre de lignes que cog2025
   dplyr::select(COM, LIBELLE) %>% 
   mutate(HERMINIA = ifelse(COM %in% herminia, TRUE, FALSE))
@@ -22,7 +29,7 @@ cog %>%
   arrange(desc(DATE_FIN)) %>% 
   filter(year(DATE_FIN) > 2019)
 # 12 communes ont disparu entre 2020 et 2025. C'est important d'en tenir compte
-# pour corriger la base DVF.
+# pour corriger la base DVF. Il faut exprimer cette base dans le COG 2025.
 
 dvf_cog2025 <- dvf %>% 
   mutate(code_geo = case_when(
@@ -53,14 +60,18 @@ length(unique(dvf_cog2025$code_geo)) # != 1202
 
 cog2025 %>% 
   filter(!(COM %in% dvf_cog2025$code_geo))
-# A Île-de-Sein et à Île-Molène, il n'y a eu aucune transaction sur la période
+# En effet, à Île-de-Sein et Île-Molène, il n'y a eu aucune transaction sur la période
+
+# On se restreint à :
+date_deb <- as.Date("2023-08-01")
+date_fin <- as.Date("2025-06-30")
 
 dvf_cog2025_herminia <- dvf_cog2025 %>%
-  filter(annee_mois >= as.Date("2024-08-01") & annee_mois <= as.Date("2025-06-30"))
+  filter(annee_mois >= date_deb & annee_mois <= date_fin)
 
 cog2025 %>% 
   filter(!(COM %in% dvf_cog2025_herminia$code_geo))
-# Finalement, 17 communes bretonnes n'ont pas eu de transactions entre août 2024
+# Finalement, 3 communes bretonnes n'ont pas eu de transactions entre août 2023
 # et juin 2025
 
 # Créer une séquence complète de mois pour la période couverte par dvf_cog2025_herminia
@@ -68,12 +79,9 @@ mois_complets <- dvf_cog2025_herminia %>%
   distinct(annee_mois) %>%
   arrange(annee_mois)
 
-# Créer le produit cartésien : toutes les communes × tous les mois
-bdd_complete <- bdd %>%
-  crossing(mois_complets)
-
-# Effectuer la jointure avec les données DVF
-resultat <- bdd_complete %>%
+# Créer le produit cartésien : toutes les communes × tous les mois + jointure
+bdd_1 <- communes %>%
+  crossing(mois_complets) %>% 
   left_join(
     dvf_cog2025_herminia %>%
       select(-libelle_geo),  # On garde libelle_geo de bdd (nommé LIBELLE)
@@ -84,17 +92,10 @@ resultat <- bdd_complete %>%
     code_geo = COM,
     libelle_geo = LIBELLE,
     herminia = HERMINIA,
-    annee_mois,
+    date = annee_mois,
     everything()
   ) %>%
-  arrange(code_geo, annee_mois)
-
-resultat <- resultat %>% 
-  rename(
-    date = annee_mois
-  )
-
-resultat <- resultat %>%
+  arrange(code_geo, date) %>% 
   mutate(
     across(
       c(nb_ventes_maison, nb_ventes_appartement, nb_ventes_local, nb_ventes_apt_maison), # Liste des colonnes ciblées
@@ -103,81 +104,85 @@ resultat <- resultat %>%
   ) %>% select(,-med_prix_m2_appartement, -med_prix_m2_maison,
                -med_prix_m2_local, -med_prix_m2_apt_maison)
 
+nbr_normal <- interval(date_deb, date_fin) %/% months(1) + 1
 
-#il n'y a pas un nombre d'observations multiple de 11 on regèle cela
-verification_villes <- resultat %>%
-  group_by(libelle_geo) %>%
-  summarise(# n() compte le nombre de lignes dans chaque groupe
-  ) %>%
-  ungroup() 
+# Il y a un problème dans certaines communes. C'est dû aux fusion et suppressions
+communes_anormales <- bdd_1 %>%
+  group_by(libelle_geo, code_geo) %>%
+  summarise(n = n(), .groups = "drop") %>%
+  arrange(desc(n)) %>%
+  filter(n > nbr_normal) %>%
+  pull(code_geo)
 
-villes_anormales <- verification_villes %>%
-  filter(nombre_observations != 11)
-#deux villes ont plusieurs valeurs dûes à des fusions. 
-#Onfait la moyenne des deux. 
-villes_a_agreger <- c("Plumieux", "Val-d'Arguenon")
-lignes_a_agreger <- resultat %>%
-  filter(libelle_geo %in% villes_a_agreger)
+# Pour ces communes, on fait la moyenne (deux termes généralement) des valeurs
+# numériques sur les mois concernés
 
-resultat_cibles_agrege <- lignes_a_agreger %>%
+communes_a_agreger <- bdd_1 %>%
+  filter(code_geo %in% communes_anormales)
+
+communes_agregees <- communes_a_agreger %>%
   group_by(libelle_geo, date) %>%
   summarise(
-    # Moyenne pour les colonnes numériques
-    nb_ventes_maison = mean(nb_ventes_maison, na.rm = TRUE),
-    moy_prix_m2_maison = mean(moy_prix_m2_maison, na.rm = TRUE),
-    
-    # Conservation de la première valeur pour les autres colonnes (assumées constantes)
+    # Moyenne pour toutes les colonnes numériques
+    across(where(is.numeric), mean, na.rm = TRUE),
+    # Conservation de la première valeur pour les autres colonnes
     code_geo = first(code_geo),
     herminia = first(herminia),
-    
-    .groups = 'drop' 
-  )
-resultat_autres_villes <- resultat %>%
-  filter(!libelle_geo %in% villes_a_agreger)
-resultat <- bind_rows(resultat_autres_villes, resultat_cibles_agrege)
+    .groups = 'drop'
+  ) %>% 
+  dplyr::select(names(bdd_1))
 
-#On calcule le prix total par mois par commune
-resultat$prix_total_maison<-resultat$nb_ventes_maison*resultat$moy_prix_m2_maison
-resultat <- resultat %>% relocate(prix_total_maison, .after = 6)
+autres_communes <- bdd_1 %>%
+  filter(!code_geo %in% communes_anormales)
 
-resultat$prix_total_appartement<-resultat$nb_ventes_appartement*resultat$moy_prix_m2_appartement
-resultat <- resultat %>% relocate(prix_total_appartement, .after = 9)
+bdd_2 <- bind_rows(communes_agregees, autres_communes) %>% 
+  arrange(code_geo)
 
-resultat$prix_total_local<-resultat$nb_ventes_local*resultat$moy_prix_m2_local
-resultat <- resultat %>% relocate(prix_total_local, .after = 12)
+# Vérifications
+bdd_2 %>%
+  group_by(libelle_geo, code_geo) %>%
+  summarise(n = n(), .groups = "drop") %>%
+  arrange(desc(n)) %>%
+  filter(n > nbr_normal) %>%
+  pull(code_geo)
+nrow(bdd_2) / nbr_normal # On tombe bien sur un entier
 
-resultat$prix_total_apt_maison<-resultat$nb_ventes_apt_maison*resultat$moy_prix_m2_apt_maison
-resultat <- resultat %>% relocate(prix_total_apt_maison, .after = 15)
+# On calcule le prix total par mois par commune
+bdd_2$prix_total_maison<-bdd_2$nb_ventes_maison*bdd_2$moy_prix_m2_maison
+bdd_2 <- bdd_2 %>% relocate(prix_total_maison, .after = 6)
+bdd_2$prix_total_appartement<-bdd_2$nb_ventes_appartement*bdd_2$moy_prix_m2_appartement
+bdd_2 <- bdd_2 %>% relocate(prix_total_appartement, .after = 9)
+bdd_2$prix_total_local<-bdd_2$nb_ventes_local*bdd_2$moy_prix_m2_local
+bdd_2 <- bdd_2 %>% relocate(prix_total_local, .after = 12)
+bdd_2$prix_total_apt_maison<-bdd_2$nb_ventes_apt_maison*bdd_2$moy_prix_m2_apt_maison
+bdd_2 <- bdd_2 %>% relocate(prix_total_apt_maison, .after = 15)
 
-date_intervention_str <- "2025-02"
+date_intervention <- as.Date("2025-02-01")
 
-resultat <- resultat %>%
+bdd_3 <- bdd_2 %>%
   mutate(
     time = case_when(
-      date > date_intervention_str ~ 1, 
+      date > date_intervention ~ 1,
       TRUE ~ 0
-    ) 
+    ), .after = date
   )
 
-date_intervention_str <- "2025-03"
-
-resultat <- resultat %>%
-  mutate(
-    date_format = as.Date(paste0(date, "-01")), 
-    time = case_when(
-      date_format > as.Date(paste0(date_intervention_str, "-01")) ~ 1, 
-      TRUE ~ 0
-    )
-  ) %>%
-  select(-date_format) %>%
-  relocate(time, .after = 4)
-
-
-traites<-resultat %>% filter(herminia==TRUE)
-controle<-resultat %>% filter(herminia==FALSE)
-#94*11=1034 on est bon. 
+bdd <- bdd_3
 
 
 
+################################################################################
+################################ Export ########################################
+################################################################################
 
 
+aws.s3::s3write_using(
+  bdd,
+  FUN = function(data, file) saveRDS(data, file = file),
+  object = "diffusion/projet_eval_impact/donnees_nettoyees/bdd.rds",
+  bucket = "thomasguinhut",
+  opts = list(region = "")
+)
+
+nouveaux_objets <- setdiff(ls(), objets_initiaux)
+rm(nouveaux_objets, list = nouveaux_objets)

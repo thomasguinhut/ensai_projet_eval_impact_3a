@@ -61,7 +61,7 @@ cog2025 <- cog2025_2
 aws.s3::s3write_using(
   cog,
   FUN = function(data, file) saveRDS(data, file = file),
-  object = "diffusion/projet_eval_impact/donnees_nettoyees/diffusion/cog.rds",
+  object = "diffusion/projet_eval_impact/donnees_nettoyees/cog.rds",
   bucket = "thomasguinhut",
   opts = list(region = "")
 )
@@ -69,7 +69,7 @@ aws.s3::s3write_using(
 aws.s3::s3write_using(
   cog2025,
   FUN = function(data, file) saveRDS(data, file = file),
-  object = "diffusion/projet_eval_impact/donnees_nettoyees/diffusion/cog2025.rds",
+  object = "diffusion/projet_eval_impact/donnees_nettoyees/cog2025.rds",
   bucket = "thomasguinhut",
   opts = list(region = "")
 )

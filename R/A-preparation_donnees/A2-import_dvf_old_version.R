@@ -68,7 +68,7 @@ dvf <- dvf_4
 aws.s3::s3write_using(
   dvf,
   FUN = function(data, file) saveRDS(data, file = file),
-  object = "diffusion/projet_eval_impact/donnees_nettoyees/diffusion/dvf.rds",
+  object = "diffusion/projet_eval_impact/donnees_nettoyees/dvf.rds",
   bucket = "thomasguinhut",
   opts = list(region = "")
 )
