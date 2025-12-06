@@ -7,7 +7,7 @@ source("R/chargement_packages.R")
 
 # Définition des packages
 packages_requis <- c("aws.s3", "dplyr", "lubridate", "stringr", "tidyr",
-                     "ggplot2")
+                     "ggplot2", "scales")
 
 chargement_packages(packages_requis)
 

@@ -1,55 +1,95 @@
 
+#fonction pour aggreger les données
 
-# Calculer la moyenne pour la base TRAITEMENT et ajouter une étiquette
-traite_agrege <- traites %>%
-  group_by(date) %>%
-  summarise(
-    moyenne_prix_total = mean(nb_ventes_apt_maison, na.rm = TRUE),
-    .groups = 'drop'
-  ) %>%
-  mutate(Base = "Traitement")
-
-# Calculer la moyenne pour la base CONTRÔLE et ajouter une étiquette
-controle_agrege <- controle %>%
-  group_by(date) %>%
-  summarise(
-    moyenne_prix_total = mean(nb_ventes_apt_maison, na.rm = TRUE),
-    .groups = 'drop'
-  ) %>%
-  mutate(Base = "Contrôle")
-
-# Combiner les deux résultats en une seule base de données
-donnees_combinees <- bind_rows(traite_agrege, controle_agrege)
-
-# Convertir la colonne 'date' en format Date pour une visualisation correcte (ajout du 1er jour)
-donnees_combinees$date_format <- as.Date(paste0(donnees_combinees$date, "-01"))
-
-
-
-
-graph_combine_prix_moyen <- donnees_combinees %>%
-  ggplot(aes(x = date_format, y = moyenne_prix_total, color = Base)) +
+aggreger_donnees <- function(variable){
   
-  # Ligne de tendance, couleur différenciée par la variable 'Base'
-  geom_line(linewidth = 1) + 
+  traite_agrege <- traites %>%
+    group_by(date) %>%
+    summarise(
+      moyenne = mean(.data[[variable]], na.rm = TRUE),
+      .groups = "drop"
+    ) %>%
+    mutate(Base = "Traitement")
   
-  # Points pour marquer chaque observation mensuelle
-  geom_point(size = 3) +
+  controle_agrege <- controle %>%
+    group_by(date) %>%
+    summarise(
+      moyenne = mean(.data[[variable]], na.rm = TRUE),
+      .groups = "drop"
+    ) %>%
+    mutate(Base = "Contrôle")
   
-  # Titres et étiquettes
-  labs(
-    title = "Évolution du nombre de ventes (Traitement vs. Contrôle)",
-    subtitle = "Nombre de venets de maison ou appartement ",
-    x = "Date",
-    y = "Nombre de vente NON harmonisé",
-    color = "Base de données" # Titre de la légende de couleur
-  ) +
-  
-  # Mise en forme
-  theme_minimal() +
-  scale_y_continuous(labels = scales::label_number(big.mark = " ", suffix = " ventes")) + # Format des milliers
-  theme(axis.text.x = element_text(angle = 45, hjust = 1)) # Rotation des étiquettes X
+  bind_rows(traite_agrege, controle_agrege) %>%
+    mutate(date_format = as.Date(paste0(date, "-01")))
+}
 
-# Afficher le graphique
-print(graph_combine_prix_moyen)
 
+#fonction pour ploter les données
+
+plot_comparatif <- function(donnees, variable, legende_y){
+  
+  titre_auto <- paste0("Évolution de ", variable, " (Traitement vs Contrôle)")
+  sous_titre_auto <- "Moyenne mensuelle agrégée"
+  
+  donnees %>%
+    ggplot(aes(x = date_format, y = moyenne, color = Base)) +
+    geom_line(linewidth = 1) +
+    geom_point(size = 3) +
+    labs(
+      title = titre_auto,
+      subtitle = sous_titre_auto,
+      x = "Date",
+      y = legende_y,
+      color = "Base"
+    ) +
+    geom_vline(
+      xintercept = as.Date("2025-03-01"),
+      linetype = "dashed",
+      color = "red",
+      linewidth = 1
+    ) +
+    theme_minimal() +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1))
+}
+
+
+#fonction pour estimer l'effet du traitement 
+
+modele_did <- function(variable){
+  form <- as.formula(paste0(variable, " ~ time * herminia"))
+  summary(lm(form, resultat))
+}
+
+
+#fonction pour faire les 3 d'un coup
+
+analyse <- function(variable, legende_y){
+  
+  donnees <- aggreger_donnees(variable)
+  
+  graph <- plot_comparatif(
+    donnees = donnees,
+    variable = variable,
+    legende_y = legende_y
+  )
+  
+  did <- modele_did(variable)
+  
+  list(
+    donnees_agregees = donnees,
+    graphique = graph,
+    modele_DiD = did
+  )
+}
+
+analyse("prix_total_maison", "Prix total (€)")
+analyse("nb_ventes_maison", "Nombre de ventes")
+analyse("moy_prix_m2_maison", "Prix moyen au m² (€)")
+
+analyse("prix_total_appartement", "Prix total (€)")
+analyse("nb_ventes_appartement", "Nombre de ventes")
+analyse("moy_prix_m2_appartement", "Prix moyen au m² (€)")
+
+analyse("prix_total_apt_maison", "Prix total (€)")
+analyse("nb_ventes_apt_maison", "Nombre de ventes")
+analyse("moy_prix_m2_apt_maison", "Prix moyen au m² (€)")

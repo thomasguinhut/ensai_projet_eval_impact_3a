@@ -149,9 +149,34 @@ resultat <- resultat %>% relocate(prix_total_local, .after = 12)
 resultat$prix_total_apt_maison<-resultat$nb_ventes_apt_maison*resultat$moy_prix_m2_apt_maison
 resultat <- resultat %>% relocate(prix_total_apt_maison, .after = 15)
 
+date_intervention_str <- "2025-02"
+
+resultat <- resultat %>%
+  mutate(
+    time = case_when(
+      date > date_intervention_str ~ 1, 
+      TRUE ~ 0
+    ) 
+  )
+
+date_intervention_str <- "2025-03"
+
+resultat <- resultat %>%
+  mutate(
+    date_format = as.Date(paste0(date, "-01")), 
+    time = case_when(
+      date_format > as.Date(paste0(date_intervention_str, "-01")) ~ 1, 
+      TRUE ~ 0
+    )
+  ) %>%
+  select(-date_format) %>%
+  relocate(time, .after = 4)
+
+
 traites<-resultat %>% filter(herminia==TRUE)
 controle<-resultat %>% filter(herminia==FALSE)
 #94*11=1034 on est bon. 
+
 
 
 
