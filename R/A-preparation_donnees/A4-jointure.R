@@ -89,40 +89,70 @@ resultat <- bdd_complete %>%
   ) %>%
   arrange(code_geo, annee_mois)
 
-
-
-
-dvf %>%
-  filter(code_geo == "35126") %>%
-  arrange(annee_mois) %>%
-  ggplot(aes(x = annee_mois)) +
-  geom_line(aes(y = moy_prix_m2_maison, color = "Prix moyen"), size = 1) +
-  geom_line(aes(y = med_prix_m2_maison, color = "Prix médian"), size = 1) +
-  labs(
-    title = "Évolution des prix au m² des maisons (Allineuc)",
-    x = "Date",
-    y = "Prix au m² (€)",
-    color = "Type de prix"
-  ) +
-  theme_minimal()
-
-
-
-
-
-
-dvf <- dvf %>%
-  mutate(
-    annee_mois = as.Date(annee_mois),
-    date = format(annee_mois, "%Y-%m")
+resultat <- resultat %>% 
+  rename(
+    date = annee_mois
   )
-base_jointe<- full_join(catnat, dvf, 
-                        by = c("cod_commune" = "code_geo", "date" = "date"))
-base_econometrie <- base_jointe %>%
-  filter(dat_fin >= as.Date("2020-01-01"))
+
+resultat <- resultat %>%
+  mutate(
+    across(
+      c(nb_ventes_maison, nb_ventes_appartement, nb_ventes_local, nb_ventes_apt_maison), # Liste des colonnes ciblées
+      ~ replace_na(.x, 0)                  # La fonction ~ remplace les NA par 0
+    )
+  ) %>% select(,-med_prix_m2_appartement, -med_prix_m2_maison,
+               -med_prix_m2_local, -med_prix_m2_apt_maison)
+
+
+#il n'y a pas un nombre d'observations multiple de 11 on regèle cela
+verification_villes <- resultat %>%
+  group_by(libelle_geo) %>%
+  summarise(# n() compte le nombre de lignes dans chaque groupe
+  ) %>%
+  ungroup() 
+
+villes_anormales <- verification_villes %>%
+  filter(nombre_observations != 11)
+#deux villes ont plusieurs valeurs dûes à des fusions. 
+#Onfait la moyenne des deux. 
+villes_a_agreger <- c("Plumieux", "Val-d'Arguenon")
+lignes_a_agreger <- resultat %>%
+  filter(libelle_geo %in% villes_a_agreger)
+
+resultat_cibles_agrege <- lignes_a_agreger %>%
+  group_by(libelle_geo, date) %>%
+  summarise(
+    # Moyenne pour les colonnes numériques
+    nb_ventes_maison = mean(nb_ventes_maison, na.rm = TRUE),
+    moy_prix_m2_maison = mean(moy_prix_m2_maison, na.rm = TRUE),
+    
+    # Conservation de la première valeur pour les autres colonnes (assumées constantes)
+    code_geo = first(code_geo),
+    herminia = first(herminia),
+    
+    .groups = 'drop' 
+  )
+resultat_autres_villes <- resultat %>%
+  filter(!libelle_geo %in% villes_a_agreger)
+resultat <- bind_rows(resultat_autres_villes, resultat_cibles_agrege)
+
+#On calcule le prix total par mois par commune
+resultat$prix_total_maison<-resultat$nb_ventes_maison*resultat$moy_prix_m2_maison
+resultat <- resultat %>% relocate(prix_total_maison, .after = 6)
+
+resultat$prix_total_appartement<-resultat$nb_ventes_appartement*resultat$moy_prix_m2_appartement
+resultat <- resultat %>% relocate(prix_total_appartement, .after = 9)
+
+resultat$prix_total_local<-resultat$nb_ventes_local*resultat$moy_prix_m2_local
+resultat <- resultat %>% relocate(prix_total_local, .after = 12)
+
+resultat$prix_total_apt_maison<-resultat$nb_ventes_apt_maison*resultat$moy_prix_m2_apt_maison
+resultat <- resultat %>% relocate(prix_total_apt_maison, .after = 15)
+
+traites<-resultat %>% filter(herminia==TRUE)
+controle<-resultat %>% filter(herminia==FALSE)
+#94*11=1034 on est bon. 
 
 
 
-plot(dvf %>%
-  group_by(annee_mois) %>%
-  summarise(moyenne_ventes = mean(moy_prix_m2_appartement, na.rm = TRUE)))
+
