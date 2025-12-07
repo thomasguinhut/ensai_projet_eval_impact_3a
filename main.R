@@ -2,6 +2,7 @@
 ############################ CHARGEMENT DES PACKAGES ###########################
 ################################################################################
 
+
 # Importation de la fonction
 source("R/chargement_packages.R")
 
@@ -12,9 +13,11 @@ packages_requis <- c("aws.s3", "dplyr", "lubridate", "stringr", "tidyr",
 chargement_packages(packages_requis)
 
 
+
 ################################################################################
 ############################ IMPORTATION DES DONNÉES ###########################
 ################################################################################
+
 
 # source("R/A-preparation_donnees/A1-import_catnat.R")
 # source("R/A-preparation_donnees/A2-import_dvf.R")
@@ -39,3 +42,24 @@ import_donnees(
   cog2025 = FALSE,
   bdd = TRUE
 )
+
+
+
+################################################################################
+############################ DOUBLES DIFFERENCES ###############################
+################################################################################
+
+
+source("R/B-inference_causale/1-did.R")
+
+did_analyse("prix_total_maison", "Valeur totale des ventes de maisons (€)")
+did_analyse("nb_ventes_maison", "Nombre moyen de ventes de maisons")
+did_analyse("moy_prix_m2_maison", "Prix moyen au m² des maisons (€)")
+
+did_analyse("prix_total_appartement", "Valeur totale des ventes d'appartements (€)")
+did_analyse("nb_ventes_appartement", "Nombre de ventes d'appartements")
+did_analyse("moy_prix_m2_appartement", "Prix moyen au m² des appartements (€)")
+
+did_analyse("prix_total_apt_maison", "Valeur totale des ventes d'appartements et de maisons (€)")
+did_analyse("nb_ventes_apt_maison", "Nombre de ventes des appartements et maisons")
+did_analyse("moy_prix_m2_apt_maison", "Prix moyen au m² des appartements et maisons (€)")
