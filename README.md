@@ -1,4 +1,4 @@
-# Les catastrophes naturelles affectent-elles la valeur des biens immobiliers en Bretagne ?
+# La tempête Herminia est les inondations qui ont suivi ont-elles affecter la valeur des biens immobiliers des zones touchées juste après l'événément ?
 
 ------------------------------------------------------------------------
 
@@ -10,3 +10,7 @@
 ## Champ géographique
 
 On se restreint à la Bretagne pour limiter le nombre de données à manipuler.
+
+## Champ temporelle
+
+Pour les zones concernées, l'état de catastrophe naturelle a été déclaré entre le 23 janiver et le 5 février 2025. L'analyse de la valeur des biens immobiliers se concentre sur la période août 2023 (pour avoir suffisament de recul sur l'évolution passé de la valeur des biens) - juin 2025 (dernière mise à jour disponible de la base DVF). 
