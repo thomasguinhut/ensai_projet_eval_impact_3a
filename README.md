@@ -1,4 +1,4 @@
-# La tempête Herminia est les inondations qui ont suivi ont-elles affecter la valeur des biens immobiliers des zones touchées juste après l'événément ?
+# La tempête Herminia et les inondations qui ont suivi ont-elles affecté la valeur des biens immobiliers des zones touchées juste après l'événément ?
 
 ------------------------------------------------------------------------
 
