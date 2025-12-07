@@ -13,4 +13,4 @@ On se restreint à la Bretagne pour limiter le nombre de données à manipuler.
 
 ## Champ temporelle
 
-Pour les zones concernées, l'état de catastrophe naturelle a été déclaré entre le 23 janiver et le 5 février 2025. L'analyse de la valeur des biens immobiliers se concentre sur la période août 2023 (pour avoir suffisament de recul sur l'évolution passé de la valeur des biens) - juin 2025 (dernière mise à jour disponible de la base DVF). 
+Pour les zones concernées, l'état de catastrophe naturelle a été déclaré entre le 23 janiver et le 5 février 2025. L'analyse de la valeur des biens immobiliers se concentre sur la période août 2023 (pour avoir suffisament de recul sur l'évolution passée de la valeur des biens) - juin 2025 (dernière mise à jour disponible de la base DVF). 
