@@ -3,14 +3,19 @@
 ################################################################################
 
 
-# Importation de la fonction
-source("R/chargement_packages.R")
 
 # Définition des packages
 packages_requis <- c("aws.s3", "dplyr", "lubridate", "stringr", "tidyr",
                      "ggplot2", "scales")
 
-chargement_packages(packages_requis)
+# Chargement de pacman
+if (!"pacman" %in% installed.packages()) {
+  install.packages("pacman")
+}
+library(pacman)
+
+# Chargement via le vecteur
+pacman::p_load(char = packages_requis)
 
 
 
