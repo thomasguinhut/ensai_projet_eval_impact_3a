@@ -6,7 +6,7 @@
 
 # Définition des packages
 packages_requis <- c("aws.s3", "dplyr", "lubridate", "stringr", "tidyr",
-                     "ggplot2", "scales")
+                     "ggplot2", "scales", "MatchIt", "cobalt", "plm")
 
 # Chargement de pacman
 if (!"pacman" %in% installed.packages()) {
