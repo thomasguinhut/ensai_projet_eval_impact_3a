@@ -62,6 +62,17 @@ ps_model <- glm(herminia ~ population + niv_vie,
                 data = bdd_apres)
 summary(ps_model)
 
+stargazer(ps_model,
+          title = "Résultats de la régression GLM",
+          dep.var.labels = "Variable dépendante",
+          report = "vc*p",
+          covariate.labels = c("population" = "Population",
+                               "niv_vie" = "Médiane des niveau de vie"),
+          out = "resultats_glm.tex",
+          header = FALSE,
+          style = "default",
+          digits = 3,
+          single.row = TRUE)
 # Prédire le score de propension
 bdd_apres$pscore <- predict(ps_model, type = "response")
 
