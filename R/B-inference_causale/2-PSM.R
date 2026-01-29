@@ -6,7 +6,7 @@
 info_locales <-
   aws.s3::s3read_using(
     FUN = read.csv2,
-    object = "/bdd_info_locales.csv",
+    object = "/diffusion/bdd_info_locales.csv",
     bucket = "romaiw",
     opts = list("region" = "")
   )
