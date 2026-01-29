@@ -50,6 +50,10 @@ bdd_apres <- bdd_apres %>%
 
 summary(bdd_apres)
 
+
+ggplot(bdd_apres, aes(x=herminia, y= population, color = herminia)) + geom_boxplot()
+ggplot(bdd_apres, aes(x=herminia, y= niv_vie, color = herminia)) + geom_boxplot()
+
 #############
 #### PSM ####
 #############
