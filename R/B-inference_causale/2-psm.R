@@ -1,16 +1,15 @@
-bdd_apres <- bdd %>%
-  filter(date >= as.Date("2025-04-01"))  
+bdd_psm <- bdd %>%
+  filter(date == as.Date("2025-04-01"))
 
-
-ggplot(bdd_apres, aes(x=herminia, y= population, color = herminia)) + geom_violin()
-ggplot(bdd_apres, aes(x=herminia, y= niv_vie, color = herminia)) + geom_boxplot()
+ggplot(bdd_psm, aes(x=herminia, y= population, color = herminia)) + geom_violin()
+ggplot(bdd_psm, aes(x=herminia, y= niv_vie, color = herminia)) + geom_boxplot()
 
 #############
 #### PSM ####
 #############
 ps_model <- glm(herminia ~ population + niv_vie,
                 family = binomial(),
-                data = bdd_apres)
+                data = bdd_psm)
 summary(ps_model)
 
 stargazer(ps_model,
@@ -25,19 +24,19 @@ stargazer(ps_model,
           digits = 3,
           single.row = TRUE)
 # Prédire le score de propension
-bdd_apres$pscore <- predict(ps_model, type = "response")
+bdd_psm$pscore <- predict(ps_model, type = "response")
 
-ggplot(bdd_apres, aes(x = pscore, fill = herminia)) +
+ggplot(bdd_psm, aes(x = pscore, fill = herminia)) +
   geom_density(alpha = 0.5) +
   labs(title = "Distribution du score de propension par groupe Herminia")
 
 # Support commun
-ggplot(bdd_apres, aes(x = pscore, color = herminia)) +
+ggplot(bdd_psm, aes(x = pscore, color = herminia)) +
   geom_density() +
   labs(title = "Support commun des scores de propension")
 
 ps_match <- matchit(herminia ~ population + niv_vie,
-                    data = bdd_apres,
+                    data = bdd_psm,
                     method = "nearest",
                     ratio = 1,
                     caliper = 0.2)

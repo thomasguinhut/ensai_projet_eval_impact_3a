@@ -40,7 +40,8 @@ info_locales <- info_locales %>%
 
 # Ajout des covariables pour le PSM
 new_bdd <- new_bdd %>%
-  left_join(info_locales, by = c("code_geo" = "Code"))
+  left_join(info_locales, by = c("code_geo" = "Code")) %>% 
+  filter(!is.na(niv_vie))
 
 glimpse(new_bdd)
 

@@ -30,19 +30,20 @@ pacman::p_load(char = packages_requis)
 
 source("R/A-preparation_donnees/A-import_donnees.R")
 
-# import_donnees(
-#   catnat = TRUE,
-#   dvf = TRUE,
-#   cog = TRUE,
-#   cog2025 = TRUE,
-#   bdd = FALSE
-# )
-# 
-# source("R/A-preparation_donnees/A4-jointure.R")
-# source("R/A-preparation_donnees/A5-ajout_variables.R")
+import_donnees(
+  onyxia = TRUE,
+  catnat = TRUE,
+  dvf = TRUE,
+  cog = TRUE,
+  cog2025 = TRUE,
+  bdd = FALSE
+)
+
+source("R/A-preparation_donnees/A4-jointure.R")
+source("R/A-preparation_donnees/A5-ajout_variables.R")
 
 import_donnees(
-  onyxia = FALSE,
+  onyxia = TRUE,
   bdd = TRUE
 )
 
@@ -68,7 +69,8 @@ did_analyse("nb_ventes_apt_maison", "Nombre de ventes des appartements et maison
 did_analyse("moy_prix_m2_apt_maison", "Prix moyen au m² des appartements et maisons (€)")
 
 
-unique(bdd %>% 
-  filter(herminia == TRUE) %>% 
-  filter(substr(code_geo, 1, 2) != "35") %>% 
-  pull(code_geo))
+################################################################################
+###################################### PSM #####################################
+################################################################################
+
+# Voir le script dans le dossier correspondant ("R/B-inference_causale/2-psm")
