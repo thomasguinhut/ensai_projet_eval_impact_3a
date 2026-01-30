@@ -30,17 +30,17 @@ pacman::p_load(char = packages_requis)
 
 source("R/A-preparation_donnees/A-import_donnees.R")
 
-import_donnees(
-  onyxia = TRUE,
-  catnat = TRUE,
-  dvf = TRUE,
-  cog = TRUE,
-  cog2025 = TRUE,
-  bdd = FALSE
-)
-
-source("R/A-preparation_donnees/A4-jointure.R")
-source("R/A-preparation_donnees/A5-ajout_variables.R")
+# import_donnees(
+#   onyxia = TRUE,
+#   catnat = TRUE,
+#   dvf = TRUE,
+#   cog = TRUE,
+#   cog2025 = TRUE,
+#   bdd = FALSE
+# )
+# 
+# source("R/A-preparation_donnees/A4-jointure.R")
+# source("R/A-preparation_donnees/A5-ajout_variables.R")
 
 import_donnees(
   onyxia = TRUE,
