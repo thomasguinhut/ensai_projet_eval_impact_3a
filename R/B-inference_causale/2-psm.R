@@ -1,54 +1,5 @@
-###########################################
-#### Import des données et traitements ####
-###########################################
-
-# Chargement de la base avec les données locales sur la population, niveau de vie...
-info_locales <-
-  aws.s3::s3read_using(
-    FUN = read.csv2,
-    object = "/diffusion/bdd_info_locales.csv",
-    bucket = "romaiw",
-    opts = list("region" = "")
-  )
-info_locales <- info_locales %>%
-  mutate(population = as.numeric(Population.des.ménages.2022),
-         police = as.numeric(Police...Gendarmerie..en.nombre..2024),
-         piscine = as.numeric(Bassin.de.natation..en.nombre..2024), 
-         niv_vie = as.numeric(Médiane.du.niveau.de.vie.2021))
-info_locales <- info_locales %>%
-  select(Code, Libellé, population, police, piscine, niv_vie)
-
-bdd <- bdd %>%
-  mutate(
-    annee_mois = format(date, "%Y-%m"),
-    herminia = as.factor(herminia)
-  )
-
-# Séparer les données avant/après mars 2025
-bdd_avant <- bdd %>%
-  filter(date < as.Date("2025-03-01"))  
-
 bdd_apres <- bdd %>%
   filter(date >= as.Date("2025-04-01"))  
-
-# calcul des moyenne avant la tempête
-moyenne <- bdd_avant %>%
-  group_by(code_geo) %>%
-  summarise(
-    nb_ventes_pre = mean(nb_ventes_maison, na.rm = TRUE),
-    prix_m2_pre = mean(moy_prix_m2_maison, na.rm = TRUE),
-    .groups = "drop"
-  )
-
-bdd_apres <- bdd_apres %>%
-  left_join(moyenne, by = "code_geo") %>%
-  na.omit()
-
-# Ajout des covariables pour le PSM
-bdd_apres <- bdd_apres %>%
-  left_join(info_locales, by = c("libelle_geo" = "Libellé"))
-
-summary(bdd_apres)
 
 
 ggplot(bdd_apres, aes(x=herminia, y= population, color = herminia)) + geom_violin()

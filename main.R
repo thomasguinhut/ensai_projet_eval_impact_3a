@@ -37,14 +37,12 @@ source("R/A-preparation_donnees/A-import_donnees.R")
 #   cog2025 = TRUE,
 #   bdd = FALSE
 # )
-
+# 
 # source("R/A-preparation_donnees/A4-jointure.R")
+# source("R/A-preparation_donnees/A5-ajout_variables.R")
 
 import_donnees(
-  catnat = FALSE,
-  dvf = FALSE,
-  cog = FALSE,
-  cog2025 = FALSE,
+  onyxia = FALSE,
   bdd = TRUE
 )
 
@@ -68,3 +66,9 @@ did_analyse("moy_prix_m2_appartement", "Prix moyen au m² des appartements (€)
 did_analyse("prix_total_apt_maison", "Valeur totale des ventes d'appartements et de maisons (€)")
 did_analyse("nb_ventes_apt_maison", "Nombre de ventes des appartements et maisons")
 did_analyse("moy_prix_m2_apt_maison", "Prix moyen au m² des appartements et maisons (€)")
+
+
+unique(bdd %>% 
+  filter(herminia == TRUE) %>% 
+  filter(substr(code_geo, 1, 2) != "35") %>% 
+  pull(code_geo))

@@ -168,21 +168,3 @@ bdd_3 <- bdd_2 %>%
   )
 
 bdd <- bdd_3
-
-
-
-################################################################################
-################################ Export ########################################
-################################################################################
-
-
-aws.s3::s3write_using(
-  bdd,
-  FUN = function(data, file) saveRDS(data, file = file),
-  object = "diffusion/projet_eval_impact/donnees_nettoyees/bdd.rds",
-  bucket = "thomasguinhut",
-  opts = list(region = "")
-)
-
-nouveaux_objets <- setdiff(ls(), objets_initiaux)
-rm(nouveaux_objets, list = nouveaux_objets)
